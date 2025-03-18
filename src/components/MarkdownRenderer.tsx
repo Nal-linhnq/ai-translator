@@ -30,7 +30,7 @@ const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
           code({ children, ...props }) {
             return (
               <code
-                className="bg-gray-100 px-2 py-1 rounded text-sm"
+                className="bg-gray-50 border border-gray-300 text-red-500 px-1 py-1 rounded text-sm"
                 {...props}
               >
                 {children}
