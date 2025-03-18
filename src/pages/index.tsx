@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { Button, Textarea } from "@headlessui/react";
 import { Check, Copy } from "lucide-react";
@@ -27,6 +27,42 @@ export default function Home() {
   const [targetLang, setTargetLang] = useState("English");
   const [copied, setCopied] = useState<string | null>(null);
   const [preview, setPreview] = useState(false);
+  const [undoStack, setUndoStack] = useState<string[]>([]);
+  const [redoStack, setRedoStack] = useState<string[]>([]);
+
+  useEffect(() => {
+    setUndoStack((prev) => [...prev, inputText]);
+  }, [inputText]);
+
+  const undo = () => {
+    if (undoStack.length > 1) {
+      const lastState = undoStack[undoStack.length - 2];
+      setRedoStack((prev) => [inputText, ...prev]);
+      setUndoStack((prev) => prev.slice(0, -1));
+      setInputText(lastState);
+    }
+  };
+
+  const redo = () => {
+    if (redoStack.length > 0) {
+      const nextState = redoStack[0];
+      setUndoStack((prev) => [...prev, inputText]);
+      setRedoStack((prev) => prev.slice(1));
+      setInputText(nextState);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.ctrlKey) {
+      if (event.key === "z") {
+        event.preventDefault();
+        undo();
+      } else if (event.key === "y") {
+        event.preventDefault();
+        redo();
+      }
+    }
+  };
 
   const handleTranslate = async () => {
     if (!inputText.trim()) return;
@@ -131,13 +167,14 @@ export default function Home() {
           <LanguageSwitcher />
         </div>
 
-        <MarkdownEditor setMarkdown={setInputText} />
+        <MarkdownEditor markdown={inputText} setMarkdown={setInputText} />
 
         <Textarea
           id="markdown-input"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onPaste={handlePaste}
+          onKeyDown={handleKeyDown}
           placeholder={t("placeholder")}
           rows={6}
           className="w-full p-3 border whitespace-pre-wrap break-words rounded-md focus:ring focus:ring-blue-300"

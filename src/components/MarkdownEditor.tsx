@@ -12,11 +12,19 @@ import {
 import { Button } from "@headlessui/react";
 
 interface MarkdownEditorProps {
+  markdown: string;
   setMarkdown: (markdown: string) => void;
 }
 
-const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ setMarkdown }) => {
-  const insertMarkdown = (tag: string, wrapText = false) => {
+const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
+  markdown,
+  setMarkdown,
+}) => {
+  const insertAtCursor = (
+    before: string,
+    after: string = "",
+    placeholder = ""
+  ) => {
     const textarea = document.getElementById(
       "markdown-input"
     ) as HTMLTextAreaElement;
@@ -24,21 +32,20 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ setMarkdown }) => {
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const text = textarea.value;
+    const selectedText = markdown.substring(start, end) || placeholder;
+    const newText = before + selectedText + after;
 
-    const before = text.substring(0, start);
-    const after = text.substring(end);
-    const selected = text.substring(start, end);
-
-    const newText = wrapText
-      ? `${before}${tag}${selected}${tag}${after}`
-      : `${before}${tag}${after}`;
-    setMarkdown(newText);
-
-    setTimeout(() => {
-      textarea.selectionStart = textarea.selectionEnd = start + tag.length;
-      textarea.focus();
-    }, 0);
+    setMarkdown(
+      markdown.substring(0, start) + newText + markdown.substring(end)
+    );
+    setTimeout(
+      () =>
+        textarea.setSelectionRange(
+          start + before.length,
+          start + newText.length - after.length
+        ),
+      0
+    );
   };
 
   return (
@@ -46,42 +53,43 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ setMarkdown }) => {
       {[
         {
           icon: <Bold size={16} />,
-          action: () => insertMarkdown("**", true),
+          action: () => insertAtCursor("**", "**", "bold"),
           label: "Bold",
         },
         {
           icon: <Italic size={16} />,
-          action: () => insertMarkdown("_", true),
+          action: () => insertAtCursor("_", "_", "italic"),
           label: "Italic",
         },
         {
           icon: <Strikethrough size={16} />,
-          action: () => insertMarkdown("~~", true),
+          action: () => insertAtCursor("~~", "~~", "strike"),
           label: "Strike",
         },
         {
           icon: <Link size={16} />,
-          action: () => insertMarkdown("[Link](https://)", false),
+          action: () =>
+            insertAtCursor("[Link text](https://example.com/)", "", "link"),
           label: "Link",
         },
         {
           icon: <List size={16} />,
-          action: () => insertMarkdown("- ", false),
+          action: () => insertAtCursor("- ", "", "list item"),
           label: "Bullet List",
         },
         {
           icon: <ListOrdered size={16} />,
-          action: () => insertMarkdown("1. ", false),
+          action: () => insertAtCursor("1. ", "", "list item"),
           label: "Number List",
         },
         {
           icon: <Quote size={16} />,
-          action: () => insertMarkdown("> ", false),
+          action: () => insertAtCursor("> ", "", "quote"),
           label: "Quote",
         },
         {
           icon: <Code size={16} />,
-          action: () => insertMarkdown("```\ncode\n```", false),
+          action: () => insertAtCursor("`", "`", "code"),
           label: "Code Block",
         },
       ].map(({ icon, action, label }, idx) => (
