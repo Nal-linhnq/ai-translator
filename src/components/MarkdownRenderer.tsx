@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkEmoji from "remark-emoji";
