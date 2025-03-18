@@ -1,0 +1,12 @@
+{
+  "title": "AI Translator & Summarizer",
+  "placeholder": "Enter the text to translate or summarize...",
+  "label": "Select translation language:",
+  "translate": "Translate",
+  "summary": "Summarize",
+  "preview": "Preview",
+  "showPreview": "Show preview",
+  "hidePreview": "Hide preview",
+  "translating": "Translating...",
+  "summarizing": "Summarizing..."
+}
