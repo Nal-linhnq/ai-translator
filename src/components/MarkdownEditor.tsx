@@ -23,7 +23,8 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const insertAtCursor = (
     before: string,
     after: string = "",
-    placeholder = ""
+    placeholder = "",
+    isMultiLine = false
   ) => {
     const textarea = document.getElementById(
       "markdown-input"
@@ -33,19 +34,30 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = markdown.substring(start, end) || placeholder;
-    const newText = before + selectedText + after;
+
+    let newText = selectedText;
+
+    if (isMultiLine) {
+      const lines = selectedText.split("\n");
+      if (before === "1. ") {
+        newText = lines.map((line, i) => `${i + 1}. ${line}`).join("\n");
+      } else {
+        newText = lines.map((line) => `${before}${line}`).join("\n");
+      }
+    } else {
+      newText = before + selectedText + after;
+    }
 
     setMarkdown(
       markdown.substring(0, start) + newText + markdown.substring(end)
     );
-    setTimeout(
-      () =>
-        textarea.setSelectionRange(
-          start + before.length,
-          start + newText.length - after.length
-        ),
-      0
-    );
+
+    setTimeout(() => {
+      textarea.setSelectionRange(
+        start + before.length,
+        start + newText.length - after.length
+      );
+    }, 0);
   };
 
   return (
@@ -74,17 +86,17 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         },
         {
           icon: <List size={16} />,
-          action: () => insertAtCursor("- ", "", "list item"),
+          action: () => insertAtCursor("- ", "", "list item", true),
           label: "Bullet List",
         },
         {
           icon: <ListOrdered size={16} />,
-          action: () => insertAtCursor("1. ", "", "list item"),
+          action: () => insertAtCursor("1. ", "", "list item", true),
           label: "Number List",
         },
         {
           icon: <Quote size={16} />,
-          action: () => insertAtCursor("> ", "", "quote"),
+          action: () => insertAtCursor("> ", "", "quote", true),
           label: "Quote",
         },
         {
