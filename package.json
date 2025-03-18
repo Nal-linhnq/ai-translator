@@ -1,6 +1,8 @@
 {
   "name": "ai-translator",
   "version": "0.1.0",
+  "author": "Linh Nguyen",
+  "description": "A simple AI translator using OpenAI's GPT-4o-mini",
   "private": true,
   "scripts": {
     "dev": "next dev",
