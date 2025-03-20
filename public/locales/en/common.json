@@ -12,5 +12,6 @@
   "grammar": "Grammar",
   "analyze": "Analyze",
   "submit": "Submit",
-  "processing": "Processing..."
+  "processing": "Processing...",
+  "mode": "Select mode:"
 }

@@ -199,7 +199,9 @@ export default function Home() {
         </div>
 
         {/* BUTTONS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 my-4">
+        <p className="text-sm font-semibold mb-0">{t("mode")}</p>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
           <button
             className={`px-4 cursor-pointer py-2 rounded text-md ${
               mode === "translate" ? "bg-green-500 text-white" : "bg-gray-200"
@@ -244,7 +246,7 @@ export default function Home() {
           {loading ? t("processing") : t("submit")}
         </button>
 
-        <div className="relative mt-4 p-5 border rounded bg-gray-100">
+        <div className="relative mt-4 p-6 border rounded bg-gray-100">
           {result ? (
             <>
               <MarkdownRenderer content={result} />

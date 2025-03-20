@@ -12,5 +12,6 @@
   "grammar": "文法",
   "analyze": "分析",
   "submit": "提出",
-  "processing": "処理中..."
+  "processing": "処理中...",
+  "mode": "モードを選択:"
 }

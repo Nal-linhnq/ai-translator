@@ -17,13 +17,13 @@ export default async function handler(
   let prompt = "";
 
   if (mode === "grammar") {
-    prompt = `Your are a master developer and you have been tasked with correcting the following text. Maintaining the structure and formatting of the original content. Input Text:`;
+    prompt = `Your are a master developer (you know everything about frontend, backend, devops, testing) and you have been tasked with correcting the following text. Maintaining the structure and formatting of the original content. Input Text:`;
   } else if (mode === "translate") {
-    prompt = `Your are a master developer and you have been tasked with translating the following text into **${targetLang}**. Input Text:`;
+    prompt = `Your are a master developer (you know everything about frontend, backend, devops, testing) and you have been tasked with translating the following text into **${targetLang}**. Input Text:`;
   } else if (mode === "summarize") {
-    prompt = `Your are a master developer and you have been tasked translate and summarizing the following text in **${targetLang}**. Using bullet points or structured paragraphs where necessary. Input Text:`;
+    prompt = `Your are a master developer (you know everything about frontend, backend, devops, testing) and you have been tasked with translating and summarize the following text into **${targetLang}**.. Using bullet points or structured paragraphs where necessary. Input Text:`;
   } else if (mode === "analyze") {
-    prompt = `Your are a master developer and you have been tasked with analyzing the following text in **${targetLang}**. Using headings, bullet points, and bold highlights where necessary. Input Text: `;
+    prompt = `Your are a master developer (you know everything about frontend, backend, devops, testing) and you have been tasked with analyzing the following text in **${targetLang}**. Using headings, bullet points, and bold highlights where necessary. Input Text: `;
   }
 
   try {
