@@ -3,10 +3,14 @@
   "placeholder": "翻訳または要約するテキストを入力してください...",
   "label": "翻訳言語を選択してください:",
   "translate": "翻訳",
-  "summary": "要約",
+  "summarize": "要約",
   "preview": "プレビュー",
   "showPreview": "プレビューを表示",
   "hidePreview": "プレビューを非表示",
   "translating": "翻訳中...",
-  "summarizing": "要約中..."
+  "summarizing": "要約中...",
+  "grammar": "文法",
+  "analyze": "分析",
+  "submit": "提出",
+  "processing": "処理中..."
 }
