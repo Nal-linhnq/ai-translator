@@ -13,5 +13,8 @@
   "analyze": "Analyze",
   "submit": "Submit",
   "processing": "Processing...",
-  "mode": "Select mode:"
+  "mode": "Select mode:",
+  "extractText": "Extract text from image:",
+  "chooseImage": "Choose an image",
+  "extracting": "Extracting text..."
 }

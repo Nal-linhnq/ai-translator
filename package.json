@@ -26,6 +26,7 @@
     "remark-breaks": "^4.0.0",
     "remark-emoji": "^5.0.1",
     "remark-gfm": "^4.0.1",
+    "tesseract.js": "^6.0.0",
     "turndown": "^7.2.0"
   },
   "devDependencies": {
