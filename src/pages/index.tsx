@@ -11,6 +11,7 @@ import MarkdownRenderer from "@/components/MarkdownRenderer";
 import MarkdownEditor from "@/components/MarkdownEditor";
 import TurndownService from "turndown";
 import { AnimatePresence, motion } from "framer-motion";
+import OCRExtractor from "@/components/OCRExtractor";
 
 export const getStaticProps: GetStaticProps = async ({ locale }) => ({
   props: {
@@ -151,6 +152,21 @@ export default function Home() {
     });
   };
 
+  const handleExtractedText = async (text: string) => {
+    setLoading(true);
+    setResult("");
+
+    const response = await fetch("/api/extractText", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, targetLang }),
+    });
+
+    const data = await response.json();
+    setResult(data.text);
+    setLoading(false);
+  };
+
   return (
     <>
       <Head>
@@ -276,6 +292,13 @@ export default function Home() {
             </AnimatePresence>
           )}
         </div>
+
+        <p className="text-sm font-semibold mb-0">{t("extractText")}</p>
+
+        <OCRExtractor
+          handleExtractedText={handleExtractedText}
+          lang={targetLang}
+        />
       </div>
     </>
   );
