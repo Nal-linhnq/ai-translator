@@ -1,5 +1,6 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import remarkEmoji from "remark-emoji";
 import remarkGfm from "remark-gfm";
 
@@ -7,7 +8,7 @@ const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
   return (
     <div className="prose max-w-none">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkEmoji]}
+        remarkPlugins={[remarkBreaks, remarkGfm, remarkEmoji]}
         components={{
           a: ({ ...props }) => (
             <a

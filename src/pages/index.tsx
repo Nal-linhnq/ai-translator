@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
-import { Button, Textarea } from "@headlessui/react";
+import { Textarea } from "@headlessui/react";
 import { Check, Copy } from "lucide-react";
-import { LANGUAGES } from "@/shared/constants";
+import { HELLO_TEXTS, LANGUAGES } from "@/shared/constants";
 import { GetStaticProps } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -10,6 +10,7 @@ import Head from "next/head";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import MarkdownEditor from "@/components/MarkdownEditor";
 import TurndownService from "turndown";
+import { AnimatePresence, motion } from "framer-motion";
 
 export const getStaticProps: GetStaticProps = async ({ locale }) => ({
   props: {
@@ -20,15 +21,30 @@ export const getStaticProps: GetStaticProps = async ({ locale }) => ({
 export default function Home() {
   const { t } = useTranslation("common");
   const [inputText, setInputText] = useState("");
-  const [translatedText, setTranslatedText] = useState("");
-  const [summary, setSummary] = useState("");
-  const [loadingTranslate, setLoadingTranslate] = useState(false);
-  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [result, setResult] = useState("");
+  const [loading, setLoading] = useState(false);
   const [targetLang, setTargetLang] = useState("English");
   const [copied, setCopied] = useState<string | null>(null);
-  const [preview, setPreview] = useState(false);
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const [redoStack, setRedoStack] = useState<string[]>([]);
+  const [mode, setMode] = useState("translate");
+  const [textIndex, setTextIndex] = useState(0);
+
+  useEffect(() => {
+    let interval = null;
+
+    interval = setInterval(() => {
+      setTextIndex((prev) => (prev + 1) % HELLO_TEXTS.length);
+    }, 3000);
+
+    if (result) {
+      clearInterval(interval);
+    }
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [result]);
 
   useEffect(() => {
     setUndoStack((prev) => [...prev, inputText]);
@@ -64,36 +80,20 @@ export default function Home() {
     }
   };
 
-  const handleTranslate = async () => {
+  const handleProcess = async () => {
     if (!inputText.trim()) return;
-    setLoadingTranslate(true);
-    setTranslatedText("");
+    setLoading(true);
+    setResult("");
 
-    const res = await fetch("/api/translate", {
+    const response = await fetch("/api/chatgpt", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: inputText, targetLang }),
-    });
-
-    const data = await res.json();
-    setTranslatedText(data.text);
-    setLoadingTranslate(false);
-  };
-
-  const handleSummarize = async () => {
-    if (!inputText.trim()) return;
-    setLoadingSummary(true);
-    setSummary("");
-
-    const response = await fetch("/api/summarize", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: inputText, targetLang }),
+      body: JSON.stringify({ text: inputText, targetLang, mode }),
     });
 
     const data = await response.json();
-    setSummary(data.summary);
-    setLoadingSummary(false);
+    setResult(data.summary);
+    setLoading(false);
   };
 
   const copyToClipboard = (text: string) => {
@@ -161,7 +161,7 @@ export default function Home() {
         />
         <meta name="robots" content="noindex" />
       </Head>
-      <div className="max-w-2xl mx-auto p-6 space-y-4">
+      <div className="relative max-w-2xl mx-auto p-6 space-y-4">
         <div className="flex justify-between items-center mb-12">
           <h1 className="text-2xl font-bold">🌍 {t("title")}</h1>
           <LanguageSwitcher />
@@ -185,7 +185,10 @@ export default function Home() {
           <select
             value={targetLang}
             onChange={(e) => setTargetLang(e.target.value)}
-            className="w-full p-2 border rounded-md cursor-pointer"
+            className={`w-full p-2 border rounded-md cursor-pointer ${
+              mode === "grammar" ? "bg-gray-100" : "bg-white"
+            }`}
+            disabled={mode === "grammar"}
           >
             {LANGUAGES.map((lang) => (
               <option key={lang.code} value={lang.code}>
@@ -196,73 +199,81 @@ export default function Home() {
         </div>
 
         {/* BUTTONS */}
-        <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={handleTranslate}
-            disabled={loadingTranslate}
-            className="w-full sm:w-auto rounded-md bg-indigo-500 cursor-pointer px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 my-4">
+          <button
+            className={`px-4 cursor-pointer py-2 rounded text-md ${
+              mode === "translate" ? "bg-green-500 text-white" : "bg-gray-200"
+            }`}
+            onClick={() => setMode("translate")}
           >
-            {loadingTranslate ? t("translating") : t("translate")}
-          </Button>
-          <Button
-            onClick={handleSummarize}
-            disabled={loadingSummary}
-            className="w-full sm:w-auto rounded-md bg-indigo-500 cursor-pointer px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+            {t("translate")}
+          </button>
+
+          <button
+            className={`px-4 cursor-pointer py-2 rounded text-md ${
+              mode === "grammar" ? "bg-blue-500 text-white" : "bg-gray-200"
+            }`}
+            onClick={() => setMode("grammar")}
           >
-            {loadingSummary ? t("summarizing") : t("summary")}
-          </Button>
-          <Button
-            onClick={() => setPreview(!preview)}
-            disabled={inputText.trim().length === 0}
-            className="w-full sm:w-auto rounded-md bg-indigo-500 cursor-pointer px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+            {t("grammar")}
+          </button>
+
+          <button
+            className={`px-4 cursor-pointer py-2 rounded text-md ${
+              mode === "summarize" ? "bg-yellow-500 text-white" : "bg-gray-200"
+            }`}
+            onClick={() => setMode("summarize")}
           >
-            {preview ? t("hidePreview") : t("showPreview")}
-          </Button>
+            {t("summarize")}
+          </button>
+          <button
+            className={`px-4 cursor-pointer py-2 rounded text-md ${
+              mode === "analyze" ? "bg-red-500 text-white" : "bg-gray-200"
+            }`}
+            onClick={() => setMode("analyze")}
+          >
+            {t("analyze")}
+          </button>
         </div>
 
-        {/* TRANSLATED TEXT */}
-        <div className="relative p-4 bg-gray-100  rounded-md">
-          <p className="font-semibold">{t("translate")}:</p>
-          <MarkdownRenderer content={translatedText} />
-          {translatedText && (
-            <button
-              onClick={() => copyToClipboard(translatedText)}
-              className="absolute top-3 right-3 text-gray-600  hover:text-gray-900 transition"
-            >
-              {copied === translatedText ? (
-                <Check className="w-5 h-5 text-green-500" />
-              ) : (
-                <Copy className="w-5 h-5" />
-              )}
-            </button>
+        <button
+          className="px-4 py-2 cursor-pointer bg-blue-600 text-white rounded w-full"
+          onClick={handleProcess}
+          disabled={loading}
+        >
+          {loading ? t("processing") : t("submit")}
+        </button>
+
+        <div className="relative mt-4 p-5 border rounded bg-gray-100">
+          {result ? (
+            <>
+              <MarkdownRenderer content={result} />
+              <button
+                onClick={() => copyToClipboard(result)}
+                className="absolute top-3 right-3 text-gray-600  hover:text-gray-900 transition"
+              >
+                {copied === result ? (
+                  <Check className="w-5 h-5 text-green-500" />
+                ) : (
+                  <Copy className="w-5 h-5" />
+                )}
+              </button>
+            </>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={textIndex}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.5 }}
+                className="text-4xl font-bold text-gray-700"
+              >
+                {HELLO_TEXTS[textIndex]}
+              </motion.p>
+            </AnimatePresence>
           )}
         </div>
-
-        {/* SUMMARY */}
-        <div className="relative p-4 bg-gray-100  rounded-md">
-          <p className="font-semibold">{t("summary")}:</p>
-          <MarkdownRenderer content={summary} />
-          {summary && (
-            <Button
-              onClick={() => copyToClipboard(summary)}
-              className="absolute top-3 right-3 text-gray-600  hover:text-gray-900 transition"
-            >
-              {copied === summary ? (
-                <Check className="w-5 h-5 text-green-500" />
-              ) : (
-                <Copy className="w-5 h-5" />
-              )}
-            </Button>
-          )}
-        </div>
-
-        {/* PREVIEW */}
-        {preview && (
-          <div className="p-4 bg-gray-100  rounded-md">
-            <p className="font-semibold">{t("preview")}:</p>
-            <MarkdownRenderer content={inputText} />
-          </div>
-        )}
       </div>
     </>
   );
