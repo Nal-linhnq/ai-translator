@@ -18,5 +18,10 @@
   "chooseImage": "Choose an image",
   "extracting": "Extracting text...",
   "loadingImage": "Loading image...",
-  "acceptImage": "Accepted formats: PNG, JPG, JPEG, WEBP (Max: 2MB)"
+  "acceptImage": "Accepted formats: PNG, JPG, JPEG, WEBP (Max: 2MB)",
+  "pasteImage": "Paste image",
+  "noImageCopy": "No image found in clipboard.",
+  "noClipboardSupport": "Clipboard API is not supported in this browser.",
+  "onlyImage": "Only PNG, JPG, and JPEG images are allowed.",
+  "maxImageSize": "File size must be less than 2MB."
 }
