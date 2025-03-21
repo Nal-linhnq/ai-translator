@@ -100,8 +100,7 @@ export default function Home() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(text);
-    const timerId = setTimeout(() => setCopied(null), 2000);
-    clearTimeout(timerId);
+    setTimeout(() => setCopied(null), 2000);
   };
 
   const handlePaste = async (
@@ -262,7 +261,7 @@ export default function Home() {
           {loading ? t("processing") : t("submit")}
         </button>
 
-        <div className="relative mt-4 p-6 border rounded bg-gray-100">
+        <div className="relative mt-4 p-6 border rounded ">
           {result ? (
             <>
               <MarkdownRenderer content={result} />
@@ -273,7 +272,7 @@ export default function Home() {
                 {copied === result ? (
                   <Check className="w-5 h-5 text-green-500" />
                 ) : (
-                  <Copy className="w-5 h-5" />
+                  <Copy className="w-5 h-5 cursor-pointer" />
                 )}
               </button>
             </>

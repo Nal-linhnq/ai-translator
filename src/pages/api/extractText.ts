@@ -34,7 +34,7 @@ Output format:
 ---  
 
 **Translation ({targetLanguage}):**  
-[Translated version] / (Empty if no valid text)`,
+[Translated version]`,
         },
       ],
     });
