@@ -4,4 +4,4 @@ export const LANGUAGES = [
   { code: "Japanese", name: "🇯🇵 日本語 (Nhật)", lang: "jpn" },
 ];
 
-export const HELLO_TEXTS = ["Xin chào", "Hello", "こんにちは"];
+export const HELLO_TEXTS = ["🇻🇳 Xin chào", "🇬🇧 Hello", "🇯🇵 こんにちは"];

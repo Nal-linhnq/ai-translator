@@ -151,19 +151,26 @@ export default function Home() {
     });
   };
 
-  const handleExtractedText = async (text: string) => {
+  const handleExtractedText = async (text: string, isPdf = false) => {
     setLoading(true);
     setResult("");
 
     const response = await fetch("/api/extractText", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, targetLang }),
+      body: JSON.stringify({ text, targetLang, isPdf }),
     });
 
     const data = await response.json();
-    setResult(data.text);
+    const extractText = data.text || "No valid text found.";
+    setResult(extractText);
     setLoading(false);
+
+    if (extractText && data.isPdf) {
+      setInputText(extractText);
+    } else if (data.correctedText) {
+      setInputText(data.correctedText);
+    }
   };
 
   return (
@@ -261,7 +268,7 @@ export default function Home() {
           {loading ? t("processing") : t("submit")}
         </button>
 
-        <div className="relative mt-4 p-6 border rounded ">
+        <div className="relative max-h-120 overflow-y-auto mt-4 p-6 border rounded ">
           {result ? (
             <>
               <MarkdownRenderer content={result} />

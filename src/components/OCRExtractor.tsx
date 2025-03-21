@@ -1,14 +1,22 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@headlessui/react";
 import { UploadIcon, Clipboard, Trash2 } from "lucide-react";
 import { useTranslation } from "next-i18next";
 import React, { useRef, useState } from "react";
 import Tesseract from "tesseract.js";
+import * as pdfjsLib from "pdfjs-dist";
+import { GlobalWorkerOptions } from "pdfjs-dist";
+
+GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js";
 
 type Props = {
-  handleExtractedText: (text: string) => void;
+  handleExtractedText: (text: string, isPdf?: boolean) => void;
 };
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_FILE_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
+
+const MAX_FILE_PDF_SIZE = 5 * 1024 * 1024; // 5MB
 
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
 
@@ -31,7 +39,7 @@ const OCRTextOverlay: React.FC<Props> = ({ handleExtractedText }) => {
       return;
     }
 
-    if (fileData.size > MAX_FILE_SIZE) {
+    if (fileData.size > MAX_FILE_IMAGE_SIZE) {
       setError(t("maxImageSize"));
       setLoading(false);
       return;
@@ -48,10 +56,45 @@ const OCRTextOverlay: React.FC<Props> = ({ handleExtractedText }) => {
     processOCR(imageURL);
   };
 
+  const extractTextFromPDF = async (file: File) => {
+    if (file.size > MAX_FILE_PDF_SIZE) {
+      setError(t("maxPdfSize"));
+      setLoading(false);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(file);
+
+    reader.onload = async () => {
+      setError(null);
+      const pdfData = new Uint8Array(reader.result as ArrayBuffer);
+      const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+      let text = "";
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map((item: any) => item.str).join(" ") + "\n";
+      }
+
+      console.log("PDF Text:", text);
+      handleExtractedText(text, true);
+    };
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
+
+    if (!file) return;
+
+    if (file.type === "application/pdf") {
+      extractTextFromPDF(file);
+    } else if (file.type.startsWith("image/")) {
       handleImageFile(file);
+    } else {
+      setError(t("fileUploadError"));
+      setLoading(false);
     }
 
     event.target.value = "";
@@ -96,7 +139,6 @@ const OCRTextOverlay: React.FC<Props> = ({ handleExtractedText }) => {
   const processOCR = (imageURL: string) => {
     Tesseract.recognize(imageURL, "jpn+eng+vie")
       .then(({ data: { text } }) => {
-        console.log("OCR Text:", text);
         handleExtractedText(text);
         renderImage(imageURL);
       })
@@ -124,11 +166,11 @@ const OCRTextOverlay: React.FC<Props> = ({ handleExtractedText }) => {
       {/* File Upload */}
       <label className="w-full flex flex-col items-center px-4 py-4  rounded-lg shadow-md tracking-wide uppercase border border-blue cursor-pointer transition hover:bg-gray-100 ">
         <UploadIcon size={24} />
-        <span className="mt-2 text-sm">{t("chooseImage")}</span>
+        <span className="mt-2 text-sm">{t("chooseFile")}</span>
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/png, image/jpeg, image/jpg, image/webp"
+          accept="application/pdf, image/png, image/jpeg, image/jpg, image/webp"
           className="hidden"
           onChange={handleFileUpload}
         />

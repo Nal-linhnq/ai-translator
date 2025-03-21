@@ -14,14 +14,16 @@
   "submit": "提出",
   "processing": "処理中...",
   "mode": "モードを選択:",
-  "extractText": "画像からテキストを抽出:",
-  "chooseImage": "画像を選択",
+  "extractText": "画像からテキストを抽出 (PDF含む):",
+  "chooseFile": "PDFまたは画像ファイルをアップロード",
   "extracting": "テキストを抽出中...",
   "loadingImage": "画像を読み込み中...",
-  "acceptImage": "受け入れられる形式: PNG, JPG, JPEG, WEBP (最大: 2MB)",
+  "acceptImage": "受け入れられる形式: PNG, JPG, JPEG, WEBP (最大: 2MB) 、PDF (最大: 5MB)",
   "pasteImage": "画像を貼り付け",
   "noImageCopy": "クリップボードに画像が見つかりません。",
   "noClipboardSupport": "このブラウザではClipboard APIがサポートされていません。",
   "onlyImage": "PNG, JPG, JPEG形式の画像のみが許可されています。",
-  "maxImageSize": "ファイルサイズは2MB未満である必要があります。"
+  "maxImageSize": "ファイルサイズは2MB未満である必要があります。",
+  "fileUploadError": "PDFまたは画像ファイルのみがサポートされています。",
+  "maxPdfSize": "ファイルサイズは5MB未満である必要があります。"
 }
