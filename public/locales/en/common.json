@@ -16,5 +16,7 @@
   "mode": "Select mode:",
   "extractText": "Extract text from image:",
   "chooseImage": "Choose an image",
-  "extracting": "Extracting text..."
+  "extracting": "Extracting text...",
+  "loadingImage": "Loading image...",
+  "acceptImage": "Accepted formats: PNG, JPG, JPEG, WEBP (Max: 2MB)"
 }

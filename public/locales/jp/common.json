@@ -16,5 +16,7 @@
   "mode": "モードを選択:",
   "extractText": "画像からテキストを抽出:",
   "chooseImage": "画像を選択",
-  "extracting": "テキストを抽出中..."
+  "extracting": "テキストを抽出中...",
+  "loadingImage": "画像を読み込み中...",
+  "acceptImage": "受け入れられる形式: PNG, JPG, JPEG, WEBP (最大: 2MB)"
 }

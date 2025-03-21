@@ -295,10 +295,7 @@ export default function Home() {
 
         <p className="text-sm font-semibold mb-0">{t("extractText")}</p>
 
-        <OCRExtractor
-          handleExtractedText={handleExtractedText}
-          lang={targetLang}
-        />
+        <OCRExtractor handleExtractedText={handleExtractedText} />
       </div>
     </>
   );
