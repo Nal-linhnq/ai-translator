@@ -14,14 +14,16 @@
   "submit": "Submit",
   "processing": "Processing...",
   "mode": "Select mode:",
-  "extractText": "Extract text from image:",
-  "chooseImage": "Choose an image",
+  "extractText": "Extract text from image and PDF:",
+  "chooseFile": "Upload PDF or Image File",
   "extracting": "Extracting text...",
   "loadingImage": "Loading image...",
-  "acceptImage": "Accepted formats: PNG, JPG, JPEG, WEBP (Max: 2MB)",
+  "acceptImage": "Accepted formats: PNG, JPG, JPEG, WEBP (up to 2MB), PDF (up to 5MB)",
   "pasteImage": "Paste image",
   "noImageCopy": "No image found in clipboard.",
   "noClipboardSupport": "Clipboard API is not supported in this browser.",
   "onlyImage": "Only PNG, JPG, and JPEG images are allowed.",
-  "maxImageSize": "File size must be less than 2MB."
+  "maxImageSize": "File image size must be less than 2MB.",
+  "fileUploadError": "Only PDF or Image files are supported.",
+  "maxPdfSize": "File pdf size must be less than 5MB."
 }
