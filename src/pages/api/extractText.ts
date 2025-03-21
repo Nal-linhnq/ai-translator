@@ -22,7 +22,7 @@ export default async function handler(
           role: "system",
           content: !text
             ? `Translate text from "No valid text found." into ${targetLang}. Just translate and nothing else.`
-            : `Correct the given text by fixing spelling, grammar, and formatting errors. Remove unnecessary characters while preserving the original meaning. If the text consists entirely of meaningless characters, return "No valid text found." and translate it to ${targetLang}.  
+            : `Correct the given text by fixing spelling, grammar, and formatting errors. Remove unnecessary characters while preserving the original meaning. If the text consists entirely of meaningless characters and translate it to ${targetLang}.  
 
 Input text: ${text} 
 
