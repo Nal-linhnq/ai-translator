@@ -9,8 +9,9 @@ export default async function handler(
     return res.status(405).json({ message: "Method Not Allowed" });
   }
 
-  const { text, targetLang } = req.body;
-  if (!text || !targetLang) {
+  const { sourceText, targetLanguage, action = "" } = req.body;
+
+  if (!sourceText || !targetLanguage) {
     return res.status(400).json({ message: "Missing required parameters" });
   }
 
@@ -19,15 +20,17 @@ export default async function handler(
       model: "gpt-4o-mini",
       messages: [
         {
-          role: "system",
-          content: `Translate and summarize the following text into ${targetLang} while preserving its original Markdown formatting. Ensure that all headings, bold, italic, lists, links, and other Markdown elements remain intact. The summary should be presented as bullet points, keeping it concise, fluent, and natural while retaining key points. The text to process is:`,
+          role: "user",
+          content: action
+            ? action
+            : `Translate and summarize the following text into ${targetLanguage} The summary should be presented as bullet points, keeping it concise, fluent, and natural while retaining key point. The text to process is:`,
         },
-        { role: "user", content: text },
+        { role: "user", content: sourceText },
       ],
     });
 
     res.status(200).json({
-      summary: response.choices[0]?.message.content || "Summarize failed",
+      summarizedText: response.choices[0]?.message.content,
     });
   } catch (error) {
     console.error(error);
