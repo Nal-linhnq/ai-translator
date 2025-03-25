@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
-import { useTranslation } from "next-i18next";
-import { Textarea } from "@headlessui/react";
-import { Check, Copy } from "lucide-react";
-import { HELLO_TEXTS, LANGUAGES } from "@/shared/constants";
-import { GetStaticProps } from "next";
+"use client";
+
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileText, Languages, Maximize2, Globe } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
+import TranslateTab from "@/components/tabs/translate-tab";
+import SummarizeTab from "@/components/tabs/summarize-tab";
+import ExtractTab from "@/components/tabs/extract-tab";
+import { useTranslation } from "next-i18next";
+import { GetStaticProps } from "next";
+import { useRouter } from "next/router";
 import Head from "next/head";
-import MarkdownRenderer from "@/components/MarkdownRenderer";
-import MarkdownEditor from "@/components/MarkdownEditor";
-import TurndownService from "turndown";
-import { AnimatePresence, motion } from "framer-motion";
-import OCRExtractor from "@/components/OCRExtractor";
 
 export const getStaticProps: GetStaticProps = async ({ locale }) => ({
   props: {
@@ -20,289 +20,138 @@ export const getStaticProps: GetStaticProps = async ({ locale }) => ({
 });
 
 export default function Home() {
+  const [, setActiveTab] = useState("translate");
+  const [appLanguage, setAppLanguage] = useState<"en" | "jp">("en");
   const { t } = useTranslation("common");
-  const [inputText, setInputText] = useState("");
-  const [result, setResult] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [targetLang, setTargetLang] = useState("English");
-  const [copied, setCopied] = useState<string | null>(null);
-  const [undoStack, setUndoStack] = useState<string[]>([]);
-  const [redoStack, setRedoStack] = useState<string[]>([]);
-  const [mode, setMode] = useState("translate");
-  const [textIndex, setTextIndex] = useState(0);
+  const router = useRouter();
 
-  useEffect(() => {
-    let interval = null;
-
-    interval = setInterval(() => {
-      setTextIndex((prev) => (prev + 1) % HELLO_TEXTS.length);
-    }, 3000);
-
-    if (result) {
-      clearInterval(interval);
-    }
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [result]);
-
-  useEffect(() => {
-    setUndoStack((prev) => [...prev, inputText]);
-  }, [inputText]);
-
-  const undo = () => {
-    if (undoStack.length > 1) {
-      const lastState = undoStack[undoStack.length - 2];
-      setRedoStack((prev) => [inputText, ...prev]);
-      setUndoStack((prev) => prev.slice(0, -1));
-      setInputText(lastState);
-    }
-  };
-
-  const redo = () => {
-    if (redoStack.length > 0) {
-      const nextState = redoStack[0];
-      setUndoStack((prev) => [...prev, inputText]);
-      setRedoStack((prev) => prev.slice(1));
-      setInputText(nextState);
-    }
-  };
-
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.ctrlKey) {
-      if (event.key === "z") {
-        event.preventDefault();
-        undo();
-      } else if (event.key === "y") {
-        event.preventDefault();
-        redo();
-      }
-    }
-  };
-
-  const handleProcess = async () => {
-    if (!inputText.trim()) return;
-    setLoading(true);
-    setResult("");
-
-    const response = await fetch("/api/chatgpt", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: inputText, targetLang, mode }),
-    });
-
-    const data = await response.json();
-    setResult(data.summary);
-    setLoading(false);
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(text);
-    setTimeout(() => setCopied(null), 2000);
-  };
-
-  const handlePaste = async (
-    event: React.ClipboardEvent<HTMLTextAreaElement>
-  ) => {
-    event.preventDefault();
-    const clipboardData = event.clipboardData;
-    const plainText = clipboardData.getData("text/plain");
-    const htmlText = clipboardData.getData("text/html");
-    let markdownText = plainText;
-
-    if (htmlText) {
-      const turndownService = new TurndownService({
-        headingStyle: "atx",
-        bulletListMarker: "-",
-        codeBlockStyle: "fenced",
-      });
-
-      turndownService.addRule("preformatted", {
-        filter: ["pre"],
-        replacement: function (content) {
-          return "```\n" + content + "\n```";
-        },
-      });
-
-      turndownService.addRule("bold", {
-        filter: ["b", "strong"],
-        replacement: function (content) {
-          return `**${content}**`;
-        },
-      });
-
-      turndownService.addRule("italic", {
-        filter: ["i", "em"],
-        replacement: function (content) {
-          return `*${content}*`;
-        },
-      });
-
-      markdownText = turndownService.turndown(htmlText);
-    }
-
-    setInputText((prev) => {
-      const textarea = event.target as HTMLTextAreaElement;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      return prev.substring(0, start) + markdownText + prev.substring(end);
-    });
-  };
-
-  const handleExtractedText = async (text: string, isPdf = false) => {
-    setLoading(true);
-    setResult("");
-
-    const response = await fetch("/api/extractText", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, targetLang, isPdf }),
-    });
-
-    const data = await response.json();
-    const extractText = data.text || "No valid text found.";
-    setResult(extractText);
-    setLoading(false);
-
-    if (extractText && data.isPdf) {
-      setInputText(extractText);
-    } else if (data.correctedText) {
-      setInputText(data.correctedText);
-    }
+  const changeLanguage = (lang: string) => {
+    setAppLanguage(lang as "en" | "jp");
+    router.push(router.pathname, router.pathname, { locale: lang });
   };
 
   return (
     <>
       <Head>
-        <title>🌍 AI Translator & Summarizer</title>
-        <meta
-          name="description"
-          content="Translate and summarize text using AI."
-        />
+        <title>{t("appTitle")}</title>
+        <meta name="description" content={t("appDescription")} />
         <meta name="robots" content="noindex" />
       </Head>
-      <div className="relative max-w-2xl mx-auto p-6 space-y-4">
-        <div className="flex justify-between items-center mb-12">
-          <h1 className="text-2xl font-bold">🌍 {t("title")}</h1>
-          <LanguageSwitcher />
-        </div>
+      <main className="flex min-h-screen flex-col items-center p-4 md:p-24">
+        <div className="w-full max-w-5xl space-y-8">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-muted-foreground" />
+                <span className="text-sm font-medium">
+                  {t("languageSwitcher")}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`text-sm ${
+                    appLanguage === "en" ? "font-bold" : ""
+                  }`}
+                >
+                  {t("english")}
+                </span>
+                <Switch
+                  checked={appLanguage === "jp"}
+                  onCheckedChange={() =>
+                    changeLanguage(appLanguage === "en" ? "jp" : "en")
+                  }
+                  aria-label="Toggle language"
+                />
+                <span
+                  className={`text-sm ${
+                    appLanguage === "jp" ? "font-bold" : ""
+                  }`}
+                >
+                  {t("japanese")}
+                </span>
+              </div>
+            </div>
+            <h1 className="text-4xl font-bold tracking-tight pt-3">
+              {t("appTitle")}
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              {t("appDescription")}
+            </p>
+          </div>
 
-        <MarkdownEditor markdown={inputText} setMarkdown={setInputText} />
-
-        <Textarea
-          id="markdown-input"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onPaste={handlePaste}
-          onKeyDown={handleKeyDown}
-          placeholder={t("placeholder")}
-          rows={6}
-          className="w-full p-3 border whitespace-pre-wrap break-words rounded-md focus:ring focus:ring-blue-300"
-        />
-        {/* SELECT LANGUAGE */}
-        <div>
-          <label className="block text-sm font-semibold">{t("label")}</label>
-          <select
-            value={targetLang}
-            onChange={(e) => setTargetLang(e.target.value)}
-            className={`w-full p-2 border rounded-md cursor-pointer ${
-              mode === "grammar" ? "bg-gray-100" : "bg-white"
-            }`}
-            disabled={mode === "grammar"}
+          <Tabs
+            defaultValue="translate"
+            className="w-full"
+            onValueChange={setActiveTab}
           >
-            {LANGUAGES.map((lang) => (
-              <option key={lang.code} value={lang.code}>
-                {lang.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* BUTTONS */}
-        <p className="text-sm font-semibold mb-0">{t("mode")}</p>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
-          <button
-            className={`px-4 cursor-pointer py-2 rounded text-md ${
-              mode === "translate" ? "bg-green-500 text-white" : "bg-gray-200"
-            }`}
-            onClick={() => setMode("translate")}
-          >
-            {t("translate")}
-          </button>
-
-          <button
-            className={`px-4 cursor-pointer py-2 rounded text-md ${
-              mode === "grammar" ? "bg-blue-500 text-white" : "bg-gray-200"
-            }`}
-            onClick={() => setMode("grammar")}
-          >
-            {t("grammar")}
-          </button>
-
-          <button
-            className={`px-4 cursor-pointer py-2 rounded text-md ${
-              mode === "summarize" ? "bg-yellow-500 text-white" : "bg-gray-200"
-            }`}
-            onClick={() => setMode("summarize")}
-          >
-            {t("summarize")}
-          </button>
-          <button
-            className={`px-4 cursor-pointer py-2 rounded text-md ${
-              mode === "analyze" ? "bg-red-500 text-white" : "bg-gray-200"
-            }`}
-            onClick={() => setMode("analyze")}
-          >
-            {t("analyze")}
-          </button>
-        </div>
-
-        <button
-          className="px-4 py-2 cursor-pointer bg-blue-600 text-white rounded w-full"
-          onClick={handleProcess}
-          disabled={loading}
-        >
-          {loading ? t("processing") : t("submit")}
-        </button>
-
-        <div className="relative max-h-120 overflow-y-auto mt-4 p-6 border rounded ">
-          {result ? (
-            <>
-              <MarkdownRenderer content={result} />
-              <button
-                onClick={() => copyToClipboard(result)}
-                className="absolute top-3 right-3 text-gray-600  hover:text-gray-900 transition"
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger
+                value="translate"
+                className="flex items-center gap-2"
               >
-                {copied === result ? (
-                  <Check className="w-5 h-5 text-green-500" />
-                ) : (
-                  <Copy className="w-5 h-5 cursor-pointer" />
-                )}
-              </button>
-            </>
-          ) : (
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={textIndex}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.5 }}
-                className="text-4xl font-bold text-gray-700"
+                <Languages className="h-4 w-4" />
+                <span>{t("translate")}</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="summarize"
+                className="flex items-center gap-2"
               >
-                {HELLO_TEXTS[textIndex]}
-              </motion.p>
-            </AnimatePresence>
-          )}
+                <Maximize2 className="h-4 w-4" />
+                <span>{t("summarize")}</span>
+              </TabsTrigger>
+              <TabsTrigger value="extract" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                <span>{t("extract")}</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="translate" className="space-y-4 mt-4">
+              <TranslateTab />
+            </TabsContent>
+
+            <TabsContent value="summarize" className="space-y-4 mt-4">
+              <SummarizeTab />
+            </TabsContent>
+
+            <TabsContent value="extract" className="space-y-4 mt-4">
+              <ExtractTab />
+            </TabsContent>
+          </Tabs>
+
+          <div className="bg-muted p-6 rounded-lg">
+            <h2 className="text-xl font-semibold mb-4">{t("howItWorks")}</h2>
+            <div className="grid gap-6 md:grid-cols-3">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Languages className="h-5 w-5 text-primary" />
+                  <h3 className="font-medium">{t("translationFeature")}</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {t("translationDescription")}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Maximize2 className="h-5 w-5 text-primary" />
+                  <h3 className="font-medium">{t("summarizationFeature")}</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {t("summarizationDescription")}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  <h3 className="font-medium">{t("extractionFeature")}</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {t("extractionDescription")}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <p className="text-sm font-semibold mb-0">{t("extractText")}</p>
-
-        <OCRExtractor handleExtractedText={handleExtractedText} />
-      </div>
+      </main>
     </>
   );
 }

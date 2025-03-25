@@ -1,5 +1,13 @@
-import { openai } from "@/lib/openai";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { openai } from "@/lib/openai";
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "10mb",
+    },
+  },
+};
 
 export default async function handler(
   req: NextApiRequest,
@@ -9,9 +17,9 @@ export default async function handler(
     return res.status(405).json({ message: "Method Not Allowed" });
   }
 
-  const { sourceText, targetLanguage, action = "" } = req.body;
+  const { base64Image } = JSON.parse(req.body);
 
-  if (!sourceText || !targetLanguage) {
+  if (!base64Image) {
     return res.status(400).json({ message: "Missing required parameters" });
   }
 
@@ -21,9 +29,19 @@ export default async function handler(
       messages: [
         {
           role: "user",
-          content: `Translate and summarize the following text into ${targetLanguage} while maintaining clarity and key information. ${action} Text:`,
+          content: [
+            {
+              type: "text",
+              text: "Extract all readable text from the provided image and output it as plain text. Maintain formatting where applicable, especially for structured data (e.g., tables, lists, or code). if possible, enhance OCR accuracy for low-quality images.",
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Image}`,
+              },
+            },
+          ],
         },
-        { role: "user", content: sourceText },
       ],
       stream: true,
     });
@@ -43,6 +61,6 @@ export default async function handler(
     res.end();
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Summarize failed" });
+    res.status(500).json({ message: "Error processing image" });
   }
 }

@@ -9,8 +9,9 @@ export default async function handler(
     return res.status(405).json({ message: "Method Not Allowed" });
   }
 
-  const { text, targetLang } = req.body;
-  if (!text || !targetLang) {
+  const { sourceText, targetLanguage } = req.body;
+
+  if (!sourceText || !targetLanguage) {
     return res.status(400).json({ message: "Missing required parameters" });
   }
 
@@ -19,15 +20,27 @@ export default async function handler(
       model: "gpt-4o-mini",
       messages: [
         {
-          role: "system",
-          content: `Translate the following text into ${targetLang} while preserving its original Markdown formatting. Ensure that all bold, italic, lists, links, headings, and other Markdown elements remain intact. Maintain accuracy, fluency, and cultural nuances for a natural translation. The text to translate is:`,
+          role: "user",
+          content: `Translate the following text into ${targetLanguage} while preserving its technical accuracy and professional tone. Text:`,
         },
-        { role: "user", content: text },
+        { role: "user", content: sourceText },
       ],
+      stream: true,
     });
-    res.status(200).json({
-      text: response.choices[0]?.message.content || "Translation failed",
-    });
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+
+    for await (const chunk of response) {
+      const text = chunk.choices[0]?.delta?.content || "";
+
+      if (text) {
+        res.write(text);
+      }
+    }
+
+    res.end();
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Translation failed" });
