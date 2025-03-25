@@ -21,14 +21,26 @@ export default async function handler(
       messages: [
         {
           role: "user",
-          content: `Translate the following text into ${targetLanguage} Maintain accuracy, fluency, and cultural nuances for a natural translation. The text to translate is:`,
+          content: `Translate the following text into ${targetLanguage} while preserving its technical accuracy and professional tone. Text:`,
         },
         { role: "user", content: sourceText },
       ],
+      stream: true,
     });
-    res.status(200).json({
-      translatedText: response.choices[0]?.message.content,
-    });
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+
+    for await (const chunk of response) {
+      const text = chunk.choices[0]?.delta?.content || "";
+
+      if (text) {
+        res.write(text);
+      }
+    }
+
+    res.end();
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Translation failed" });

@@ -34,7 +34,6 @@ export default async function handler(
   Object.keys(data.files).forEach((key) => {
     if (data.files[key] && data.files[key].length > 0) {
       const file = data.files[key][0];
-      console.log(`Received file ${key}:`, file.originalFilename);
       newFile = fs.readFileSync(file.filepath);
     }
   });
@@ -42,7 +41,7 @@ export default async function handler(
   try {
     const pdfData = await pdfParse(newFile);
 
-    const stream = await openai.chat.completions.create({
+    const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
@@ -50,7 +49,7 @@ export default async function handler(
           content: [
             {
               type: "text",
-              text: "Extract all text from this PDF, keeping headings, paragraphs, lists, and tables intact.Then, summarize the key points concisely. If the document has sections, summarize each section separately. Do not change any single character. Write exact all sentences as it is in the PDF.",
+              text: "Extract all readable text from the uploaded PDF and output it as structured text. Maintain formatting, including headings, bullet points, and numbered lists. If the document includes tables or code snippets, keep them structured for better readability. Text:",
             },
             {
               type: "text",
@@ -62,11 +61,19 @@ export default async function handler(
       stream: true,
     });
 
-    for await (const chunk of stream) {
-      console.log(chunk);
-      console.log(chunk.choices[0].delta);
-      console.log("****************");
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+
+    for await (const chunk of response) {
+      const text = chunk.choices[0]?.delta?.content || "";
+
+      if (text) {
+        res.write(text);
+      }
     }
+
+    res.end();
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error processing pdf" });

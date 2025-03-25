@@ -57,5 +57,12 @@
   "grammarDescription": "Correct grammar and spelling errors",
   "editedText": "Edited Text",
   "copyButton": "Copy",
-  "copied": "Copied!"
+  "copied": "Copied!",
+  "noImageCopy": "No image found in clipboard.",
+  "noClipboardSupport": "Clipboard API is not supported in this browser.",
+  "refineSummary": "Refine your summary:",
+  "pdfLimit": "PDF file size exceeds 5MB limit",
+  "imageLimit": "Image file size exceeds 2MB limit",
+  "onlySupports": "Only webp, png, jpg, and jpeg image formats are supported",
+  "unsupportedFile": "Unsupported file type. Please upload a PDF or image (webp, png, jpg, jpeg)"
 }

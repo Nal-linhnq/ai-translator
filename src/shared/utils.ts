@@ -1,11 +1,3 @@
-export const extractFixedText = (output?: string) => {
-  if (!output) return "";
-
-  return (
-    output.split("**Corrected Text:**")[1]?.split("\n\n---")[0]?.trim() || ""
-  );
-};
-
 export const imageToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

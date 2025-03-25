@@ -21,17 +21,26 @@ export default async function handler(
       messages: [
         {
           role: "user",
-          content: action
-            ? action
-            : `Translate and summarize the following text into ${targetLanguage} The summary should be presented as bullet points, keeping it concise, fluent, and natural while retaining key point. The text to process is:`,
+          content: `Translate and summarize the following text into ${targetLanguage} while maintaining clarity and key information. ${action} Text:`,
         },
         { role: "user", content: sourceText },
       ],
+      stream: true,
     });
 
-    res.status(200).json({
-      summarizedText: response.choices[0]?.message.content,
-    });
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+
+    for await (const chunk of response) {
+      const text = chunk.choices[0]?.delta?.content || "";
+
+      if (text) {
+        res.write(text);
+      }
+    }
+
+    res.end();
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Summarize failed" });

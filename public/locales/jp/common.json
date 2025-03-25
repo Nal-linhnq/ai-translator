@@ -57,5 +57,12 @@
   "grammarDescription": "文法とスペルの誤りを修正する",
   "editedText": "編集されたテキスト",
   "copyButton": "コピー",
-  "copied": "コピーしました！"
+  "copied": "コピーしました！",
+  "noImageCopy": "クリップボードに画像が見つかりません。",
+  "noClipboardSupport": "このブラウザではClipboard APIがサポートされていません。",
+  "refineSummary": "要約を調整:",
+  "pdfLimit": "PDFファイルのサイズが5MBの制限を超えています。",
+  "imageLimit": "画像ファイルのサイズが2MBの制限を超えています。",
+  "onlySupports": "webp、png、jpg、jpegの画像形式のみがサポートされています",
+  "unsupportedFile": "サポートされていないファイル形式です。PDFまたは画像（webp、png、jpg、jpeg）をアップロードしてください"
 }

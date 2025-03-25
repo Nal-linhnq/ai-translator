@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import CopyButton from "@/components/ui/copy-button";
 import { useTranslation } from "next-i18next";
 import { useAppStore } from "@/lib/store";
+import { fetchStream } from "@/shared/fetchStream";
 
 export default function TranslateTab() {
   const {
@@ -40,20 +41,15 @@ export default function TranslateTab() {
     if (!sourceText) return;
     setTranslateLoading(true);
 
-    const response = await fetch("/api/translate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    fetchStream(
+      "/api/translate",
+      {
         sourceText,
         targetLanguage,
-      }),
-    });
-
-    const data = await response.json();
-    setTranslatedText(data.translatedText);
-    setTranslateLoading(false);
+      },
+      setTranslatedText,
+      setTranslateLoading
+    );
   };
 
   return (

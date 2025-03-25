@@ -16,14 +16,15 @@ import QuickActionButton from "@/components/ui/quick-action-button";
 import CopyButton from "@/components/ui/copy-button";
 import { useTranslation } from "next-i18next";
 import { useAppStore } from "@/lib/store";
+import { fetchStream } from "@/shared/fetchStream";
 
 export default function SummarizeTab() {
   const {
     summarizeState,
     setSummarizeSourceText,
     setSummarizedText,
-    setEditedText,
     setEditAction,
+    setEditedText,
     setSummarizeLoading,
     translateState,
   } = useAppStore();
@@ -39,20 +40,15 @@ export default function SummarizeTab() {
 
     setSummarizeLoading(true);
 
-    const response = await fetch("/api/summarize", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    fetchStream(
+      "/api/summarize",
+      {
         sourceText,
         targetLanguage,
-      }),
-    });
-
-    const data = await response.json();
-    setSummarizedText(data.summarizedText);
-    setSummarizeLoading(false);
+      },
+      setSummarizedText,
+      setSummarizeLoading
+    );
   };
 
   const handleEditAction = async (action: string) => {
@@ -63,28 +59,22 @@ export default function SummarizeTab() {
 
     if (action === "concise") {
       result =
-        "This is a more concise version of the summary. It contains only the essential points, omitting extra details. In a real application, AI would be used to shorten the text. The text to process is:";
+        "Option 1 (Make More Concise): Shorten the text while preserving key points.";
     } else if (action === "detailed") {
       result =
-        "This is a more detailed summary. It includes additional information, examples, and explanations. In a real application, AI would be used to add details to the text. The text to process is:";
+        "Option 2 (Make More Detailed): Add more details and explanations for better clarity.";
     }
 
-    const response = await fetch("/api/summarize", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    fetchStream(
+      "/api/summarize",
+      {
         sourceText: summarizedText,
         targetLanguage,
         action: result,
-      }),
-    });
-
-    const data = await response.json();
-
-    setEditedText(data.summarizedText);
-    setSummarizeLoading(false);
+      },
+      setEditedText,
+      setSummarizeLoading
+    );
   };
 
   const quickActions = [
@@ -136,7 +126,7 @@ export default function SummarizeTab() {
 
             {/* Edit Actions */}
             <div className="mt-6">
-              <h3 className="text-sm font-medium mb-3">Refine your summary:</h3>
+              <h3 className="text-sm font-medium mb-3">{t("refineSummary")}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {quickActions.map((action) => (
                   <QuickActionButton
@@ -176,7 +166,7 @@ export default function SummarizeTab() {
           disabled={!sourceText || isLoading}
           className="w-full"
         >
-          {isLoading && !editAction ? t("summarizing") : t("summarizeButton")}
+          {isLoading ? t("summarizing") : t("summarizeButton")}
         </Button>
       </CardFooter>
     </Card>

@@ -35,6 +35,7 @@ import CopyButton from "@/components/ui/copy-button";
 import { useTranslation } from "next-i18next";
 import { useAppStore } from "@/lib/store";
 import { imageToBase64 } from "@/shared/utils";
+import { fetchStream } from "@/shared/fetchStream";
 
 type QuickAction = "extract" | "translate" | null;
 
@@ -42,7 +43,6 @@ export default function ExtractTab() {
   const [pasteAreaActive, setPasteAreaActive] = useState(false);
 
   const {
-    appLanguage,
     extractState,
     setUploadedFile,
     setExtractedText,
@@ -74,20 +74,12 @@ export default function ExtractTab() {
 
     if (file.type.includes("pdf")) {
       if (file.size > 5 * 1024 * 1024) {
-        setExtractError(
-          appLanguage === "jp"
-            ? "PDFファイルのサイズが5MBの制限を超えています"
-            : "PDF file size exceeds 5MB limit"
-        );
+        setExtractError(t("pdfLimit"));
         return false;
       }
     } else if (file.type.includes("image")) {
       if (file.size > 2 * 1024 * 1024) {
-        setExtractError(
-          appLanguage === "jp"
-            ? "画像ファイルのサイズが2MBの制限を超えています"
-            : "Image file size exceeds 2MB limit"
-        );
+        setExtractError(t("imageLimit"));
         return false;
       }
 
@@ -98,19 +90,11 @@ export default function ExtractTab() {
         "image/jpg",
       ];
       if (!validImageTypes.includes(file.type)) {
-        setExtractError(
-          appLanguage === "jp"
-            ? "webp、png、jpg、jpegの画像形式のみがサポートされています"
-            : "Only webp, png, jpg, and jpeg image formats are supported"
-        );
+        setExtractError(t("onlySupports"));
         return false;
       }
     } else {
-      setExtractError(
-        appLanguage === "jp"
-          ? "サポートされていないファイル形式です。PDFまたは画像（webp、png、jpg、jpeg）をアップロードしてください"
-          : "Unsupported file type. Please upload a PDF or image (webp, png, jpg, jpeg)"
-      );
+      setExtractError(t("unsupportedFile"));
       return false;
     }
 
@@ -149,11 +133,25 @@ export default function ExtractTab() {
           }
         }
       }
-      setExtractError("noImageCopy");
+      setExtractError(t("noImageCopy"));
     } catch (error) {
       console.error("Failed to read clipboard:", error);
-      setExtractError("noClipboardSupport");
+      setExtractError(t("noClipboardSupport"));
     }
+  };
+
+  const handleTranslate = async (dataText: string, lang?: string) => {
+    setExtractLoading(true);
+
+    fetchStream(
+      "/api/translate",
+      {
+        sourceText: dataText,
+        targetLanguage: lang || targetLanguage,
+      },
+      setTranslatedContent,
+      setExtractLoading
+    );
   };
 
   const handleQuickAction = async (action: QuickAction) => {
@@ -172,23 +170,20 @@ export default function ExtractTab() {
           body: JSON.stringify({ base64Image }),
         });
 
-        const data = await res.json();
+        if (res.body) {
+          const reader = res.body?.getReader();
+          const decoder = new TextDecoder();
+          let newMessage = "";
 
-        // Process the streaming response
-        const reader = res.body?.getReader();
-        if (!reader) throw new Error("Response body is null");
-
-        const decoder = new TextDecoder();
-        let done = false;
-
-        while (!done) {
-          const { value, done: doneReading } = await reader.read();
-          done = doneReading;
-
-          if (value) {
-            const chunkText = decoder.decode(value, { stream: !done });
-            setExtractedText(extractedText + chunkText);
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
+            newMessage += chunk;
+            setExtractedText(newMessage);
           }
+
+          dataText = newMessage;
         }
       } else if (uploadedFile.type.includes("pdf")) {
         const formData = new FormData();
@@ -199,26 +194,26 @@ export default function ExtractTab() {
           body: formData,
         });
 
-        const data = await res.json();
-        dataText = data.result;
-        setExtractedText(data.result);
+        if (res.body) {
+          const reader = res.body?.getReader();
+          const decoder = new TextDecoder();
+          let newMessage = "";
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
+            newMessage += chunk;
+            setExtractedText(newMessage);
+          }
+
+          dataText = newMessage;
+        }
       }
     }
 
-    if (action === "translate") {
-      const res = await fetch("/api/translate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sourceText: dataText,
-          targetLanguage,
-        }),
-      });
-
-      const newData = await res.json();
-      setTranslatedContent(newData.translatedText);
+    if (action === "translate" && dataText && !translatedContent) {
+      handleTranslate(dataText);
     }
 
     setExtractLoading(false);
@@ -307,13 +302,9 @@ export default function ExtractTab() {
               >
                 <FileText className="h-5 w-5" />
                 <div className="flex flex-col items-start">
-                  <span className="font-medium">
-                    {appLanguage === "jp" ? "テキストを抽出" : "Extract Text"}
-                  </span>
+                  <span className="font-medium">{t("extractText")}</span>
                   <span className="text-xs text-muted-foreground text-left">
-                    {appLanguage === "jp"
-                      ? "ドキュメントからテキストを抽出する"
-                      : "Extract text from the document"}
+                    {t("extractTextDescription")}
                   </span>
                 </div>
                 <ArrowRight className="h-4 w-4 ml-auto" />
@@ -326,15 +317,9 @@ export default function ExtractTab() {
               >
                 <Languages className="h-5 w-5" />
                 <div className="flex flex-col items-start">
-                  <span className="font-medium">
-                    {appLanguage === "jp"
-                      ? "テキストを翻訳"
-                      : "Translate Content"}
-                  </span>
+                  <span className="font-medium">{t("translateContent")}</span>
                   <span className="text-xs text-muted-foreground text-left">
-                    {appLanguage === "jp"
-                      ? "抽出されたテキストを翻訳する"
-                      : "Translate the extracted content"}
+                    {t("translateContentDescription")}
                   </span>
                 </div>
                 <ArrowRight className="h-4 w-4 ml-auto" />
@@ -361,13 +346,14 @@ export default function ExtractTab() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="translated-content">
-                    {appLanguage === "jp"
-                      ? "翻訳されたコンテンツ"
-                      : "Translated Content"}
+                    {t("translatedContent")}
                   </Label>
                   <Select
                     value={targetLanguage}
-                    onValueChange={setExtractTargetLanguage}
+                    onValueChange={(lang) => {
+                      setExtractTargetLanguage(lang);
+                      handleTranslate(extractedText, lang);
+                    }}
                   >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Select language" />

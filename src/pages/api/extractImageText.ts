@@ -1,6 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { openai } from "@/lib/openai";
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "10mb",
+    },
+  },
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -24,7 +32,7 @@ export default async function handler(
           content: [
             {
               type: "text",
-              text: "Act like just a OCR Optical Character Recognition system. I will provide you an image so you will extract all text from image including all punctuation, space properly. Do not change any single character . Write exact all sentences as it is on image.",
+              text: "Extract all readable text from the provided image and output it as plain text. Maintain formatting where applicable, especially for structured data (e.g., tables, lists, or code). if possible, enhance OCR accuracy for low-quality images.",
             },
             {
               type: "image_url",
@@ -35,9 +43,22 @@ export default async function handler(
           ],
         },
       ],
+      stream: true,
     });
 
-    res.status(200).json({ result: response.choices[0]?.message?.content });
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+
+    for await (const chunk of response) {
+      const text = chunk.choices[0]?.delta?.content || "";
+
+      if (text) {
+        res.write(text);
+      }
+    }
+
+    res.end();
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error processing image" });
