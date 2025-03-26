@@ -313,6 +313,7 @@ export default function ExtractTab() {
                 variant={currentAction === "extract" ? "default" : "outline"}
                 className="flex items-center justify-center gap-2 h-auto py-4"
                 onClick={() => handleQuickAction("extract")}
+                disabled={isLoading}
               >
                 <FileText className="h-5 w-5" />
                 <div className="flex flex-col items-start">
@@ -328,6 +329,7 @@ export default function ExtractTab() {
                 variant={currentAction === "translate" ? "default" : "outline"}
                 className="flex items-center justify-center gap-2 h-auto py-4"
                 onClick={() => handleQuickAction("translate")}
+                disabled={isLoading}
               >
                 <Languages className="h-5 w-5" />
                 <div className="flex flex-col items-start">
