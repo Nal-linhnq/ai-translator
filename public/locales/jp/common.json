@@ -21,10 +21,10 @@
   "extractTitle": "ファイルからテキストを抽出",
   "extractDescription": "画像やPDFをアップロードしてテキストを抽出",
   "uploadFile": "ファイルをアップロード",
-  "fileRestrictions": "PDF (最大5MB)、画像: webp, png, jpg, jpeg (最大2MB)",
+  "fileRestrictions": "PDF (最大5MB)、画像: webp, png, jpg, jpeg (最大3MB)",
   "pasteImage": "またはクリップボードから画像を貼り付け",
   "clickAndPaste": "クリックして画像を貼り付け (Ctrl+V)",
-  "pasteSupports": "対応形式: webp, png, jpg, jpeg (最大2MB)",
+  "pasteSupports": "対応形式: webp, png, jpg, jpeg (最大3MB)",
   "extractedText": "抽出されたテキスト",
   "clearButton": "クリアして再開",
   "processing": "処理中...",
@@ -62,7 +62,7 @@
   "noClipboardSupport": "このブラウザではClipboard APIがサポートされていません。",
   "refineSummary": "要約を調整:",
   "pdfLimit": "PDFファイルのサイズが5MBの制限を超えています。",
-  "imageLimit": "画像ファイルのサイズが2MBの制限を超えています。",
+  "imageLimit": "画像ファイルのサイズが3MBの制限を超えています。",
   "onlySupports": "webp、png、jpg、jpegの画像形式のみがサポートされています",
   "unsupportedFile": "サポートされていないファイル形式です。PDFまたは画像（webp、png、jpg、jpeg）をアップロードしてください"
 }

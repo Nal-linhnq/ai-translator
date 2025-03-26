@@ -78,7 +78,7 @@ export default function ExtractTab() {
         return false;
       }
     } else if (file.type.includes("image")) {
-      if (file.size > 2 * 1024 * 1024) {
+      if (file.size > 3 * 1024 * 1024) {
         setExtractError(t("imageLimit"));
         return false;
       }
@@ -157,62 +157,76 @@ export default function ExtractTab() {
   const handleQuickAction = async (action: QuickAction) => {
     if (!uploadedFile) return;
 
-    setExtractLoading(true);
     setCurrentAction(action);
+    const formData = new FormData();
+    formData.append("file", uploadedFile);
+
     let dataText = extractedText;
 
-    if (!extractedText) {
-      if (uploadedFile.type.includes("image")) {
-        const base64Image = await imageToBase64(uploadedFile);
+    if (extractedText && translatedContent) return;
 
-        const res = await fetch("/api/extractImageText", {
-          method: "POST",
-          body: JSON.stringify({ base64Image }),
-        });
+    setExtractLoading(true);
 
-        if (res.body) {
-          const reader = res.body?.getReader();
-          const decoder = new TextDecoder();
-          let newMessage = "";
+    if (uploadedFile.type.includes("pdf") && !dataText) {
+      const res = await fetch("/api/extractPdf", {
+        method: "POST",
+        body: formData,
+      });
 
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
-            newMessage += chunk;
-            setExtractedText(newMessage);
-          }
+      const data = await res.json();
+      dataText = data.text;
+    }
 
-          dataText = newMessage;
+    if (uploadedFile.type.includes("image") && !dataText) {
+      const base64Image = await imageToBase64(uploadedFile);
+
+      const res = await fetch("/api/extractImageText", {
+        method: "POST",
+        body: JSON.stringify({ base64Image }),
+      });
+
+      if (res.body) {
+        const reader = res.body?.getReader();
+        const decoder = new TextDecoder();
+        let newMessage = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          newMessage += chunk;
+          setExtractedText(newMessage);
         }
-      } else if (uploadedFile.type.includes("pdf")) {
-        const formData = new FormData();
-        formData.append("file", uploadedFile);
 
-        const res = await fetch("/api/extractPdfText", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (res.body) {
-          const reader = res.body?.getReader();
-          const decoder = new TextDecoder();
-          let newMessage = "";
-
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
-            newMessage += chunk;
-            setExtractedText(newMessage);
-          }
-
-          dataText = newMessage;
-        }
+        dataText = newMessage;
       }
     }
 
-    if (action === "translate" && dataText && !translatedContent) {
+    if (uploadedFile.type.includes("pdf") && dataText && action === "extract") {
+      const res = await fetch("/api/extractPdfText", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceText: dataText }),
+      });
+
+      if (res.body) {
+        const reader = res.body?.getReader();
+        const decoder = new TextDecoder();
+        let newMessage = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          newMessage += chunk;
+          setExtractedText(newMessage);
+        }
+
+        dataText = newMessage;
+      }
+    }
+
+    if (action === "translate" && !translatedContent) {
       handleTranslate(dataText);
     }
 

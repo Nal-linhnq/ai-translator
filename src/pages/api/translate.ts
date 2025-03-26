@@ -21,9 +21,8 @@ export default async function handler(
       messages: [
         {
           role: "user",
-          content: `Translate the following text into ${targetLanguage} while preserving its technical accuracy and professional tone. Text:`,
+          content: `Translate the following text into ${targetLanguage} while preserving its technical accuracy and professional tone. Text: ${sourceText}`,
         },
-        { role: "user", content: sourceText },
       ],
       stream: true,
     });

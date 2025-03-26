@@ -21,9 +21,8 @@ export default async function handler(
       messages: [
         {
           role: "user",
-          content: `Translate and summarize the following text into ${targetLanguage} while maintaining clarity and key information. ${action} Text:`,
+          content: `Translate and summarize the following text into ${targetLanguage} while maintaining clarity and key information. ${action} Text: ${sourceText}`,
         },
-        { role: "user", content: sourceText },
       ],
       stream: true,
     });
