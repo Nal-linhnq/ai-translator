@@ -32,7 +32,7 @@ export default function CopyButton({ text, className = "" }: CopyButtonProps) {
       variant="ghost"
       size="icon"
       onClick={handleCopy}
-      className={`h-8 w-8 absolute right-2 top-2 ${className}`}
+      className={`h-7 w-7 absolute right-1 top-1 ${className}`}
       title={copied ? "Copied!" : "Copy to clipboard"}
     >
       {copied ? (

@@ -21,10 +21,10 @@
   "extractTitle": "Extract Text from Files",
   "extractDescription": "Upload an image or PDF to extract text",
   "uploadFile": "Upload File",
-  "fileRestrictions": "PDF (max 5MB), Images: webp, png, jpg, jpeg (max 2MB)",
+  "fileRestrictions": "PDF (max 5MB), Images: webp, png, jpg, jpeg (max 3MB)",
   "pasteImage": "Or paste image from clipboard",
   "clickAndPaste": "Click and paste image (Ctrl+V)",
-  "pasteSupports": "Supports webp, png, jpg, jpeg (max 2MB)",
+  "pasteSupports": "Supports webp, png, jpg, jpeg (max 3MB)",
   "extractedText": "Extracted Text",
   "clearButton": "Clear and Start Over",
   "processing": "Processing...",
@@ -62,7 +62,7 @@
   "noClipboardSupport": "Clipboard API is not supported in this browser.",
   "refineSummary": "Refine your summary:",
   "pdfLimit": "PDF file size exceeds 5MB limit",
-  "imageLimit": "Image file size exceeds 2MB limit",
+  "imageLimit": "Image file size exceeds 3MB limit",
   "onlySupports": "Only webp, png, jpg, and jpeg image formats are supported",
   "unsupportedFile": "Unsupported file type. Please upload a PDF or image (webp, png, jpg, jpeg)"
 }
