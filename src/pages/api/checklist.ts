@@ -17,54 +17,55 @@ export default async function handler(
 
   const languageInstruction = `\n\nIMPORTANT: Translate all category names and checklist item descriptions into ${targetLanguage}. Ensure the translations are natural and professional.`;
 
-  const prompt = `You are a senior frontend developer with extensive experience in building and testing web applications. You will analyze project context and technical specifications to create a concise self-test checklist for developers to minimize UI and logic bugs before passing their work to QA.
+  const prompt = `
+You are a senior professional with extensive experience in Frontend Development, Backend Development, Quality Assurance, and Business Analysis. You will analyze a specific ticket/task context and technical specifications to create a comprehensive checklist that covers frontend implementation and QA testing aspects.
 
-PROJECT CONTEXT:
+TICKET/TASK CONTEXT:
 ${context || "No specific context provided"}
 
-TECHNICAL SPECIFICATIONS:
+TICKET/TASK SPECIFICATIONS:
 ${sourceText || "No specific technical specifications provided"}
 
-Based on the provided context and specifications, identify the most important categories for a frontend self-test checklist. Use the context to understand the business requirements and user expectations, then use the specifications to identify specific features that need testing.
+COMPREHENSIVE ANALYSIS INSTRUCTIONS:
+1. Analyze the ticket from multiple perspectives (Frontend, Backend, QA, Business Analysis)
+2. Consider all technical and business aspects of the implementation
+3. Think about UI/UX, API integration, data flow, business logic, and testing scenarios
+4. BUT ONLY OUTPUT CHECKLIST ITEMS FOR FRONTEND AND QA ROLES
 
-For each category, provide EXACTLY 2 items:
-1. ONE happy path test - The single most important test to verify normal functionality
-2. ONE abnormal case test - The single most important test to verify error handling or edge cases
+CRITICAL INSTRUCTIONS:
+- CAREFULLY ANALYZE the provided ticket/task context and specifications from all perspectives
+- ONLY create categories that are DIRECTLY RELATED to implementing this specific ticket/task
+- Each category should have MAXIMUM 6 items covering different aspects of Frontend and QA
+- SORT items with HAPPY CASES FIRST, then abnormal cases
+- Focus on what needs to be done to complete THIS SPECIFIC TICKET successfully
+- ONLY INCLUDE ITEMS WITH ROLES [FE], [QA], or [FE/QA] - DO NOT include any [BE] or [BA] items
+
+For each category that is DIRECTLY RELATED to the ticket implementation, provide UP TO 6 items:
+- Start with happy path tests (2-3 items for Frontend implementation)
+- Follow with happy path tests (1-2 items for QA testing)
+- Then include abnormal case tests (1-2 items covering error scenarios and edge cases)
+- Each item should specify which role perspective it represents: ONLY [FE], [QA], or [FE/QA]
 
 IMPORTANT: EVERY checklist item MUST be prefixed with either "[Happy Path]" or "[Abnormal Case]" as appropriate.
-IMPORTANT: Each item should be a specific, actionable test that a developer can perform themselves.
-IMPORTANT: Focus on tests that can catch the most common and critical UI and logic bugs before they reach QA.
-IMPORTANT: Each test should be comprehensive and cover both UI and logic aspects where relevant.
+IMPORTANT: Each item should include a role indicator: ONLY [FE], [QA], or [FE/QA] for cross-cutting concerns.
+IMPORTANT: Focus ONLY on what's needed to implement and validate THIS SPECIFIC TICKET.
+IMPORTANT: If the ticket is simple, create fewer categories but ensure they're highly relevant.
+IMPORTANT: DO NOT INCLUDE ANY [BE] or [BA] items in your response.
+IMPORTANT: Use [FE/QA] for items that require both Frontend and QA collaboration.
 
-FORMAT YOUR RESPONSE AS A VALID JSON ARRAY OF CATEGORIES. Each category should have a "name" and "items" array. Each item should have "id", "description", and "completed" (always false).
+FORMAT YOUR RESPONSE AS A VALID JSON ARRAY OF CATEGORIES. Each category should have a "name" and "items" array. Each item should have "id", "description", "completed" (always false), and "role" (only "FE", "QA", or "FE/QA").
 
-Example format:
-[
-  {
-    "name": "User Authentication",
-    "items": [
-      {
-        "id": "auth-1",
-        "description": "[Happy Path] Verify that login form displays correctly, all fields are accessible, and successful login stores the authentication token and redirects to the dashboard",
-        "completed": false
-      },
-      {
-        "id": "auth-2",
-        "description": "[Abnormal Case] Verify that error messages appear with proper styling when login fails and the system handles expired tokens by redirecting to login page with appropriate message",
-        "completed": false
-      }
-    ]
-  }
-]
-
-Guidelines:
-- Only include categories that are directly relevant to the context and specifications
-- Be specific and actionable in your descriptions
-- Write test items that developers can perform themselves without special QA tools
-- Focus on tests that catch the most common and critical bugs
-- Include both UI and logic aspects in each test where relevant
+ANALYSIS GUIDELINES:
+- Read the ticket specifications carefully and identify SPECIFIC implementation requirements
+- Look for: UI components to build, API endpoints to integrate with, business rules to implement, user interactions to handle
+- Create categories based on ACTUAL work needed for this ticket
+- Consider what Frontend developers and QA testers need to do to complete their part of this ticket
+- Be SPECIFIC to the ticket requirements, not generic development practices
 - REMEMBER: EVERY item MUST be prefixed with either "[Happy Path]" or "[Abnormal Case]"
-${languageInstruction}
+- IMPORTANT: Sort items with happy cases first, then abnormal cases
+- IMPORTANT: Maximum 6 items per category
+- IMPORTANT: Focus on ticket completion, not entire project development
+- IMPORTANT: ONLY include items with roles [FE], [QA], or [FE/QA]${languageInstruction}
 `;
 
   try {
