@@ -64,5 +64,18 @@
   "pdfLimit": "PDFファイルのサイズが5MBの制限を超えています。",
   "imageLimit": "画像ファイルのサイズが3MBの制限を超えています。",
   "onlySupports": "webp、png、jpg、jpegの画像形式のみがサポートされています",
-  "unsupportedFile": "サポートされていないファイル形式です。PDFまたは画像（webp、png、jpg、jpeg）をアップロードしてください"
+  "unsupportedFile": "サポートされていないファイル形式です。PDFまたは画像（webp、png、jpg、jpeg）をアップロードしてください",
+  "checkListTitle": "チェックリスト",
+  "checkListDescription": "チェックリストを生成するためのタスク仕様を入力してください",
+  "checkListButton": "チェックリストを生成",
+  "checkListGenerating": "チェックリストを生成中...",
+  "frontEndCheckList": "フロントエンド開発チェックリスト",
+  "completedCheckList": "{{completedItems}} / {{totalItems}} アイテムが完了しました",
+  "all": "すべて",
+  "happyCase": "正常ケース",
+  "abnormalCase": "異常ケース",
+  "context": "コンテキスト",
+  "contextPlaceholder": "タスクのコンテキストを入力...",
+  "specifications": "仕様",
+  "specificationsPlaceholder": "タスクの仕様を入力..."
 }

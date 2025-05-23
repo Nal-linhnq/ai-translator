@@ -12,6 +12,7 @@ import { useTranslation } from "next-i18next";
 import { GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import ChecklistTab from "@/components/tabs/checklist-tab";
 
 export const getStaticProps: GetStaticProps = async ({ locale }) => ({
   props: {
@@ -84,7 +85,7 @@ export default function Home() {
             className="w-full"
             onValueChange={setActiveTab}
           >
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger
                 value="translate"
                 className="flex items-center gap-2"
@@ -103,6 +104,14 @@ export default function Home() {
                 <FileText className="h-4 w-4" />
                 <span>{t("extract")}</span>
               </TabsTrigger>
+
+              <TabsTrigger
+                value="checklist"
+                className="flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                <span>{t("checkListTitle")}</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="translate" className="space-y-4 mt-4">
@@ -115,6 +124,10 @@ export default function Home() {
 
             <TabsContent value="extract" className="space-y-4 mt-4">
               <ExtractTab />
+            </TabsContent>
+
+            <TabsContent value="checklist" className="space-y-4 mt-4">
+              <ChecklistTab />
             </TabsContent>
           </Tabs>
 
