@@ -1,5 +1,16 @@
 import { create } from "zustand";
 
+type ChecklistItem = {
+  id: string;
+  description: string;
+  completed: boolean;
+};
+
+export type ChecklistCategory = {
+  name: string;
+  items: ChecklistItem[];
+};
+
 interface AppState {
   appLanguage: "en" | "jp";
   setAppLanguage: (language: "en" | "jp") => void;
@@ -49,6 +60,17 @@ interface AppState {
   setExtractLoading: (isLoading: boolean) => void;
   setExtractError: (error: string | null) => void;
   resetExtractState: () => void;
+
+  // Checklist tab state
+  checklistState: {
+    checkList: ChecklistCategory[];
+    context: string;
+    isLoading: boolean;
+  };
+  setChecklistChecked: (checkList: ChecklistCategory[]) => void;
+  setChecklistLoading: (isLoading: boolean) => void;
+  setChecklistContext: (context: string) => void;
+  resetChecklistState: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -175,6 +197,35 @@ export const useAppStore = create<AppState>((set) => ({
         currentAction: null,
         isLoading: false,
         error: null,
+      },
+    })),
+
+  checklistState: {
+    checkList: [],
+    isLoading: false,
+    context: "",
+  },
+  setChecklistChecked: (checkList) =>
+    set((state) => ({
+      checklistState: {
+        ...state.checklistState,
+        checkList,
+      },
+    })),
+  setChecklistLoading: (isLoading) =>
+    set((state) => ({
+      checklistState: { ...state.checklistState, isLoading },
+    })),
+  setChecklistContext: (context) =>
+    set((state) => ({
+      checklistState: { ...state.checklistState, context },
+    })),
+  resetChecklistState: () =>
+    set(() => ({
+      checklistState: {
+        checkList: [],
+        isLoading: false,
+        context: "",
       },
     })),
 }));

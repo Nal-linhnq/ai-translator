@@ -64,5 +64,18 @@
   "pdfLimit": "PDF file size exceeds 5MB limit",
   "imageLimit": "Image file size exceeds 3MB limit",
   "onlySupports": "Only webp, png, jpg, and jpeg image formats are supported",
-  "unsupportedFile": "Unsupported file type. Please upload a PDF or image (webp, png, jpg, jpeg)"
+  "unsupportedFile": "Unsupported file type. Please upload a PDF or image (webp, png, jpg, jpeg)",
+  "checkListTitle": "Checklist",
+  "checkListDescription": "Enter text task specification to generate checklist",
+  "context": "Context",
+  "contextPlaceholder": "Enter context for the task...",
+  "specifications": "Specifications",
+  "specificationsPlaceholder": "Enter specifications for the task...",
+  "checkListButton": "Generate Checklist",
+  "checkListGenerating": "Generating Checklist...",
+  "frontEndCheckList": "Frontend Development Checklist",
+  "completedCheckList": "{{completedItems}} of {{totalItems}} items completed",
+  "all": "All",
+  "happyCase": "Happy Case",
+  "abnormalCase": "Abnormal Case"
 }
