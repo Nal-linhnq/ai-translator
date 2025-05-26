@@ -63,11 +63,11 @@ interface AppState {
 
   // Checklist tab state
   checklistState: {
-    checkList: ChecklistCategory[];
+    checkList: string;
     context: string;
     isLoading: boolean;
   };
-  setChecklistChecked: (checkList: ChecklistCategory[]) => void;
+  setChecklistChecked: (checkList: string) => void;
   setChecklistLoading: (isLoading: boolean) => void;
   setChecklistContext: (context: string) => void;
   resetChecklistState: () => void;
@@ -201,7 +201,7 @@ export const useAppStore = create<AppState>((set) => ({
     })),
 
   checklistState: {
-    checkList: [],
+    checkList: "",
     isLoading: false,
     context: "",
   },
@@ -223,7 +223,7 @@ export const useAppStore = create<AppState>((set) => ({
   resetChecklistState: () =>
     set(() => ({
       checklistState: {
-        checkList: [],
+        checkList: "",
         isLoading: false,
         context: "",
       },

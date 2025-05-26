@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
-
-import { Button } from "@/components/ui/button";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Card,
   CardContent,
@@ -10,20 +7,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { useAppStore } from "@/lib/store";
+import { useTranslation } from "next-i18next";
+import Markdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
+import CopyButton from "../ui/copy-button";
+import { Label } from "../ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useAppStore } from "@/lib/store";
-import { Check, Copy } from "lucide-react";
-import { useTranslation } from "next-i18next";
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+} from "../ui/select";
 
 export default function ChecklistTab() {
   const {
@@ -36,7 +35,6 @@ export default function ChecklistTab() {
     setChecklistContext,
   } = useAppStore();
 
-  const [copied, setCopied] = useState(false);
   const { sourceText, targetLanguage } = translateState;
   const { checkList, isLoading, context } = checklistState;
 
@@ -61,53 +59,29 @@ export default function ChecklistTab() {
       setChecklistLoading(false);
       return;
     }
-    const data = await response.json();
-    setChecklistChecked(data.checklist);
+
+    if (!response.body) {
+      throw new Error("ReadableStream not supported or empty response.");
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let accumulatedText = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      accumulatedText += chunk;
+      const cleaned = accumulatedText.replace(
+        /^```(?:markdown)?\s*|```$/gim,
+        ""
+      );
+      setChecklistChecked(cleaned);
+    }
+
     setChecklistLoading(false);
   };
-
-  const handleToggleItem = (categoryIndex: number, itemIndex: number) => {
-    const updatedChecklist = checklistState.checkList.map((category, cIdx) => {
-      if (cIdx !== categoryIndex) return category;
-      return {
-        ...category,
-        items: category.items.map((item, iIdx) =>
-          iIdx === itemIndex ? { ...item, completed: !item.completed } : item
-        ),
-      };
-    });
-    setChecklistChecked(updatedChecklist);
-  };
-
-  const handleCopyToClipboard = () => {
-    const text = checkList
-      .map((category) => {
-        return `## ${category.name}\n\n${category.items
-          .map((item) => `- [ ] ${item.description}`)
-          .join("\n")}`;
-      })
-      .join("\n\n");
-
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const isHappyPath = (description: string) => {
-    return description.toLowerCase().includes("[happy path]");
-  };
-
-  const isAbnormalCase = (description: string) => {
-    return description.toLowerCase().includes("[abnormal case]");
-  };
-
-  const completedItems = checkList.reduce((total, category) => {
-    return total + category.items.filter((item) => item.completed).length;
-  }, 0);
-
-  const totalItems = checkList.reduce((total, category) => {
-    return total + category.items.length;
-  }, 0);
 
   return (
     <div className="space-y-6">
@@ -127,7 +101,6 @@ export default function ChecklistTab() {
               onChange={(e) => setChecklistContext(e.target.value)}
             />
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="source-text">{t("specifications")}</Label>
             <Textarea
@@ -165,172 +138,74 @@ export default function ChecklistTab() {
         </CardFooter>
       </Card>
 
-      {/* Results Section */}
-      {checkList.length > 0 && (
+      {checkList && (
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>{t("frontEndCheckList")}</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                {t("completedCheckList", {
-                  completedItems,
-                  totalItems,
-                })}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyToClipboard}
-              >
-                {copied ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </CardHeader>
           <CardContent>
-            <Tabs defaultValue="all">
-              <div className="mb-4 overflow-x-auto pb-2">
-                <TabsList className="flex-wrap h-auto">
-                  <TabsTrigger value="all">
-                    {t("all")} ({totalItems})
-                  </TabsTrigger>
-                  {checkList.map((category, index) => (
-                    <TabsTrigger
-                      key={index}
-                      value={category.name.toLowerCase()}
-                    >
-                      {category.name} ({category.items.length})
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
-
-              <TabsContent value="all" className="space-y-6">
-                {checkList.map((category, categoryIndex) => (
-                  <div key={categoryIndex}>
-                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                      {category.name}
-                      <span className="text-sm font-normal text-muted-foreground">
-                        (
-                        {category.items.filter((item) => item.completed).length}
-                        /{category.items.length})
-                      </span>
-                    </h3>
-                    <ul className="space-y-2">
-                      {category.items.map((item, itemIndex) => (
-                        <li
-                          key={item.id}
-                          className="flex items-start gap-3 p-2 rounded hover:bg-muted/50"
-                        >
-                          <div
-                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border cursor-pointer transition-colors ${
-                              item.completed
-                                ? "bg-primary border-primary"
-                                : "border-primary/20 hover:border-primary/40"
-                            }`}
-                            onClick={() =>
-                              handleToggleItem(categoryIndex, itemIndex)
-                            }
-                          >
-                            {item.completed && (
-                              <Check className="h-3 w-3 text-primary-foreground" />
-                            )}
-                          </div>
-                          <div
-                            className={`flex-1 ${
-                              item.completed
-                                ? "line-through text-muted-foreground"
-                                : ""
-                            }`}
-                            onClick={() =>
-                              handleToggleItem(categoryIndex, itemIndex)
-                            }
-                          >
-                            {isHappyPath(item.description) ? (
-                              <span className="mr-2 p-1 bg-green-50 text-green-700 border-green-200">
-                                {t("happyCase")}
-                              </span>
-                            ) : isAbnormalCase(item.description) ? (
-                              <span className="mr-2 p-1 bg-amber-50 text-amber-700 border-amber-200">
-                                {t("abnormalCase")}
-                              </span>
-                            ) : null}
-                            <span>
-                              {item.description.replace(
-                                /\[(Happy Path|Abnormal Case)\]\s*/i,
-                                ""
-                              )}
-                            </span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </TabsContent>
-
-              {checkList.map((category, categoryIndex) => (
-                <TabsContent
-                  key={categoryIndex}
-                  value={category.name.toLowerCase()}
-                >
-                  <ul className="space-y-2">
-                    {category.items.map((item, itemIndex) => (
-                      <li
-                        key={item.id}
-                        className="flex items-start gap-3 p-2 rounded hover:bg-muted/50"
+            <div className="relative prose max-w-none dark:prose-invert prose-headings:font-bold prose-headings:mb-4 prose-headings:mt-8 prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-table:my-6 prose-table:w-full prose-th:bg-muted prose-th:p-3 prose-td:p-3 prose-tr:border-b prose-code:bg-muted prose-code:px-1 prose-code:rounded prose-pre:bg-muted prose-pre:p-4 prose-pre:rounded prose-pre:my-6">
+              <CopyButton text={checkList} />
+              <Markdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeRaw]}
+                components={{
+                  h1: ({ node, ...props }) => (
+                    <h1 className="font-bold text-3xl mt-10 mb-6" {...props} />
+                  ),
+                  h2: ({ node, ...props }) => (
+                    <h2 className="font-bold text-2xl mt-8 mb-4" {...props} />
+                  ),
+                  h3: ({ node, ...props }) => (
+                    <h3 className="font-bold text-xl mt-6 mb-3" {...props} />
+                  ),
+                  h4: ({ node, ...props }) => (
+                    <h4 className="font-bold text-lg mt-4 mb-2" {...props} />
+                  ),
+                  ul: ({ node, ...props }) => (
+                    <ul className="list-disc pl-6 my-4" {...props} />
+                  ),
+                  ol: ({ node, ...props }) => (
+                    <ol className="list-decimal pl-6 my-4" {...props} />
+                  ),
+                  table: ({ node, ...props }) => (
+                    <table
+                      className="border-collapse border border-gray-300 w-full my-6"
+                      {...props}
+                    />
+                  ),
+                  th: ({ node, ...props }) => (
+                    <th
+                      className="bg-gray-100 border px-3 py-2 font-semibold"
+                      {...props}
+                    />
+                  ),
+                  td: ({ node, ...props }) => (
+                    <td className="border px-3 py-2" {...props} />
+                  ),
+                  code: ({
+                    inline,
+                    children,
+                    ...props
+                  }: React.ComponentProps<"code"> & { inline?: boolean }) =>
+                    inline ? (
+                      <code
+                        className="bg-muted px-1 rounded"
+                        {...(props as React.ComponentProps<"code">)}
                       >
-                        <div
-                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border cursor-pointer transition-colors ${
-                            item.completed
-                              ? "bg-primary border-primary"
-                              : "border-primary/20 hover:border-primary/40"
-                          }`}
-                          onClick={() =>
-                            handleToggleItem(categoryIndex, itemIndex)
-                          }
-                        >
-                          {item.completed && (
-                            <Check className="h-3 w-3 text-primary-foreground" />
-                          )}
-                        </div>
-                        <div
-                          className={`flex-1 ${
-                            item.completed
-                              ? "line-through text-muted-foreground"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handleToggleItem(categoryIndex, itemIndex)
-                          }
-                        >
-                          {isHappyPath(item.description) ? (
-                            <span className="mr-2 p-1 bg-green-50 text-green-700 border-green-200">
-                              {t("happyCase")}
-                            </span>
-                          ) : isAbnormalCase(item.description) ? (
-                            <span className="mr-2 p-1 bg-amber-50 text-amber-700 border-amber-200">
-                              {t("abnormalCase")}
-                            </span>
-                          ) : null}
-                          <span>
-                            {item.description.replace(
-                              /\[(Happy Path|Abnormal Case)\]\s*/i,
-                              ""
-                            )}
-                          </span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </TabsContent>
-              ))}
-            </Tabs>
+                        {children}
+                      </code>
+                    ) : (
+                      <pre
+                        className="bg-muted p-4 rounded overflow-x-auto my-6"
+                        {...(props as React.ComponentProps<"pre">)}
+                      >
+                        <code>{children}</code>
+                      </pre>
+                    ),
+                  p: ({ node, ...props }) => <p className="my-4" {...props} />,
+                }}
+              >
+                {checkList}
+              </Markdown>
+            </div>
           </CardContent>
         </Card>
       )}
