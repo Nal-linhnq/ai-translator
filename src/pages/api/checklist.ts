@@ -83,15 +83,20 @@ Please structure your response with the following sections:
 
 
 ## 🧪 Unit Test Suggestion  
-> Suggest how to write unit tests (optional if FE test enforced):
+> Suggest how to write unit tests:
 - [ ] Functions/methods to test  
 - [ ] Tools (e.g., Jest, React Testing Library)  
 - [ ] Typical valid/invalid flows  
 - [ ] Expected coverage
 
 
-## 💡 Code Implementation Hint (Optional)  
+## 💡 Code Implementation Hint
 > Suggest how this can be coded (function name, hook usage, component structure...)
+
+
+## 👀 UI Verification Guide  
+> Manual steps a QA can follow to verify the feature on a real UI.  
+Use simple and practical instructions.
 
 
 ## 📈 UX & Performance Notes  
